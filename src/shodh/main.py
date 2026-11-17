@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from shodh.config.settings import settings
 from shodh.routes.health_routes import router as health_router
+from shodh.routes.auth_routes import router as auth_router
 
 
 app = FastAPI(
@@ -14,6 +15,11 @@ app = FastAPI(
 
 app.include_router(
     health_router,
+    prefix=settings.api_v1_prefix
+)
+
+app.include_router(
+    auth_router,
     prefix=settings.api_v1_prefix
 )
 
