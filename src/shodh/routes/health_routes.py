@@ -1,0 +1,19 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from shodh.database.session import get_db
+from shodh.controllers.health_controller import (
+    check_database_health
+)
+
+
+router = APIRouter(
+    prefix="/health",
+    tags=["Health"]
+)
+
+
+@router.get("")
+def health_check(db: Session = Depends(get_db)):
+
+    return check_database_health(db)
