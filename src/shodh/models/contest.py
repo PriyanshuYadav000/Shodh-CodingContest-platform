@@ -121,7 +121,7 @@ class Contest(Base):
         nullable=False,
     )
 
-    participations: Mapped[list["Participation"]] = relationship(
+    problems: Mapped[list["Problem"]] = relationship(back_populates="contest", cascade="all, delete-orphan")\n\n    participations: Mapped[list["Participation"]] = relationship(
         back_populates="contest",
         cascade="all, delete-orphan",
     )
