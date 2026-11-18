@@ -97,6 +97,14 @@ def create_new_problem(
         contest_id=contest_id,
         created_by=creator_id,
         slug=payload.slug,
+        legacy_title=payload.title,
+        legacy_statement=payload.statement,
+        legacy_input_format=payload.input_format or "",
+        legacy_output_format=payload.output_format or "",
+        legacy_constraints_text=payload.constraints_text,
+        legacy_time_limit_ms=payload.time_limit_ms,
+        legacy_memory_limit_mb=payload.memory_limit_mb,
+        legacy_points=100,
     )
     _make_version(problem, creator_id, 1, payload, payload.test_cases)
     try:

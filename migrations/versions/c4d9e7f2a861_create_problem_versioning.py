@@ -1,7 +1,7 @@
 """create immutable problem and test-suite versioning
 
 Revision ID: c4d9e7f2a861
-Revises: a31c7e9b2d10
+Revises: c42f7d1a9001
 Create Date: 2026-11-18
 """
 
@@ -12,29 +12,20 @@ import sqlalchemy as sa
 
 
 revision: str = "c4d9e7f2a861"
-down_revision: Union[str, Sequence[str], None] = "a31c7e9b2d10"
+down_revision: Union[str, Sequence[str], None] = "c42f7d1a9001"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "problems",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("organization_id", sa.Uuid(), nullable=False),
-        sa.Column("contest_id", sa.Uuid(), nullable=False),
-        sa.Column("created_by", sa.Uuid(), nullable=False),
-        sa.Column("slug", sa.String(length=120), nullable=False),
-        sa.Column("is_active", sa.Boolean(), server_default=sa.text("true"), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.CheckConstraint("slug = lower(slug)", name=op.f("ck_problems_slug_lowercase")),
-        sa.ForeignKeyConstraint(["contest_id"], ["contests.id"], name=op.f("fk_problems_contest_id_contests"), ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], name=op.f("fk_problems_created_by_users"), ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], name=op.f("fk_problems_organization_id_organizations"), ondelete="RESTRICT"),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_problems")),
-        sa.UniqueConstraint("contest_id", "slug", name="uq_problems_contest_slug"),
-    )
+    # Upgrade the upstream non-versioned problem rows in place.  Their content
+    # is copied into version 1 before legacy mutable columns are removed.
+    op.add_column("problems", sa.Column("organization_id", sa.Uuid(), nullable=True))
+    op.execute("UPDATE problems p SET organization_id = c.organization_id FROM contests c WHERE c.id = p.contest_id")
+    op.alter_column("problems", "organization_id", nullable=False)
+    op.create_foreign_key(op.f("fk_problems_organization_id_organizations"), "problems", "organizations", ["organization_id"], ["id"], ondelete="RESTRICT")
+    op.create_check_constraint(op.f("ck_problems_slug_lowercase"), "problems", "slug = lower(slug)")
+    op.alter_column("problems", "slug", type_=sa.String(length=120))
     op.create_index("ix_problems_organization_contest_active", "problems", ["organization_id", "contest_id", "is_active"], unique=False)
     op.create_table(
         "problem_versions",
@@ -59,6 +50,11 @@ def upgrade() -> None:
         sa.UniqueConstraint("problem_id", "version_number", name="uq_problem_versions_problem_version"),
     )
     op.create_index("ix_problem_versions_problem_version", "problem_versions", ["problem_id", "version_number"], unique=False)
+    op.execute("""
+        INSERT INTO problem_versions (id, problem_id, version_number, title, statement, input_format, output_format, constraints_text, time_limit_ms, memory_limit_mb, created_by)
+        SELECT gen_random_uuid(), id, 1, title, statement_md, input_format, output_format, constraints_text, time_limit_ms, memory_limit_mb, created_by
+        FROM problems
+    """)
     op.create_table(
         "test_suite_versions",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -76,6 +72,14 @@ def upgrade() -> None:
         sa.UniqueConstraint("problem_version_id", name="uq_test_suite_versions_problem_version_id"),
     )
     op.create_index("ix_test_suite_versions_problem_version", "test_suite_versions", ["problem_id", "version_number"], unique=False)
+    op.execute("""
+        INSERT INTO test_suite_versions (id, problem_id, problem_version_id, version_number, created_by)
+        SELECT gen_random_uuid(), pv.problem_id, pv.id, 1, pv.created_by
+        FROM problem_versions pv WHERE pv.version_number = 1
+    """)
+    # Keep legacy columns during this forward migration.  The immutable
+    # version-1 snapshot is authoritative, while retaining the source fields
+    # makes the change recoverable and avoids destructive data loss.
     op.create_table(
         "test_cases",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -101,4 +105,12 @@ def downgrade() -> None:
     op.drop_index("ix_problem_versions_problem_version", table_name="problem_versions")
     op.drop_table("problem_versions")
     op.drop_index("ix_problems_organization_contest_active", table_name="problems")
-    op.drop_table("problems")
+    op.drop_constraint(
+        op.f("ck_problems_slug_lowercase"), "problems", type_="check"
+    )
+    op.drop_constraint(
+        op.f("fk_problems_organization_id_organizations"),
+        "problems",
+        type_="foreignkey",
+    )
+    op.drop_column("problems", "organization_id")

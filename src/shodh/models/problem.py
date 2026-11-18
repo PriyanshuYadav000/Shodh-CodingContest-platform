@@ -36,17 +36,28 @@ class Problem(Base):
     __table_args__ = (
         UniqueConstraint("contest_id", "slug", name="uq_problems_contest_slug"),
         CheckConstraint("slug = lower(slug)", name="slug_lowercase"),
+        Index("ix_problems_contest_active", "contest_id", "is_active"),
         Index("ix_problems_organization_contest_active", "organization_id", "contest_id", "is_active"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id", ondelete="RESTRICT"), nullable=False)
-    contest_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("contests.id", ondelete="RESTRICT"), nullable=False)
+    contest_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("contests.id", ondelete="CASCADE"), nullable=False)
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
     slug: Mapped[str] = mapped_column(String(120), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+    # Retained during the forward migration from c42.  Immutable versions are
+    # authoritative; these columns keep historical migration data intact.
+    legacy_title: Mapped[str] = mapped_column("title", String(180), nullable=False)
+    legacy_statement: Mapped[str] = mapped_column("statement_md", Text, nullable=False)
+    legacy_input_format: Mapped[str] = mapped_column("input_format", Text, nullable=False)
+    legacy_output_format: Mapped[str] = mapped_column("output_format", Text, nullable=False)
+    legacy_constraints_text: Mapped[str | None] = mapped_column("constraints_text", Text, nullable=True)
+    legacy_time_limit_ms: Mapped[int] = mapped_column("time_limit_ms", Integer, nullable=False)
+    legacy_memory_limit_mb: Mapped[int] = mapped_column("memory_limit_mb", Integer, nullable=False)
+    legacy_points: Mapped[int] = mapped_column("points", Integer, nullable=False)
 
     contest: Mapped["Contest"] = relationship(back_populates="problems")
     organization: Mapped["Organization"] = relationship()
