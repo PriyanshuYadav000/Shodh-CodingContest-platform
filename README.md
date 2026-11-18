@@ -18,7 +18,7 @@ The project uses a layered FastAPI architecture and PostgreSQL for durable appli
 - [API overview](#api-overview)
 - [Running tests](#running-tests)
 - [Security and current limitations](#security-and-current-limitations)
-- [Remaining assessment work](#remaining-assessment-work)
+- [Reliability and operational-readiness roadmap](#reliability-and-operational-readiness-roadmap)
 
 ## Technology stack
 
@@ -380,33 +380,36 @@ The Docker daemon must be running and the configured Python image must be availa
 - The current implementation has not yet completed the full Stage 3 reliability requirements or the Stage 4 security/performance evidence requirements.
 - Compose-level bind-mount execution from the containerized worker must be verified on the actual target environment.
 
-## Remaining assessment work
+## Reliability and operational-readiness roadmap
+
+The first two assessment stages establish the contest domain, immutable problem/test versioning, a PostgreSQL-backed submission queue, isolated Python execution and basic verdict persistence. The following work extends that foundation toward production-grade reliability and provides repeatable evidence for the assessment.
 
 ### Stage 3 — Reliability and concurrency
 
-Planned requirements:
+The reliability work is scoped around PostgreSQL transactions and the existing submission/verdict models:
 
-- Persistent idempotency keys with request-equivalence conflict detection.
-- Multiple-worker concurrency and attempt identity/locking.
-- Bounded retries and abandoned-job recovery.
-- Safe rejudging against explicitly selected immutable versions.
-- Authoritative-attempt handling so stale results cannot overwrite newer results.
-- Leaderboard rebuild and consistency checks.
+- **Idempotent submission creation:** persist an idempotency key and a canonical request fingerprint scoped to the submitting user and contest. Return the original submission for an equivalent retry and reject reuse with different parameters.
+- **Concurrent workers:** allow independent worker processes to claim jobs safely with row locking and attempt identities, so one logical attempt cannot be applied twice.
+- **Retry and recovery policy:** bound retries, track failures and recover abandoned jobs without leaving submissions indefinitely in the running state.
+- **Safe rejudging:** let an authorized organizer select explicit immutable problem and test-suite versions, preserve prior attempts and identify the authoritative attempt.
+- **Leaderboard consistency:** derive standings from authoritative verdict records, support out-of-order completion and provide a rebuild/check path that agrees with the serving API.
+
+**Completion evidence to produce:** migration review, idempotency tests (equivalent and conflicting requests, including after restart), multi-worker race tests, retry/recovery tests, rejudge ordering tests and leaderboard rebuild comparisons.
 
 ### Stage 4 — Security, performance and diagnostics
 
-Planned requirements:
+The final stage focuses on verifying the security boundaries and measuring the system under a repeatable workload:
 
-- Cross-organization authorization and organizer-only operation tests.
-- Protection of source code, judge diagnostics and hidden test data.
-- Concurrent API/worker workload using independent processes.
-- Dataset, concurrency and machine-resource documentation.
-- p50, p95 and p99 latency, throughput, error-rate and queue-delay measurements.
-- Database bottleneck analysis using EXPLAIN and a same-workload before/after comparison.
-- Structured logs with request, submission and attempt identifiers.
-- Controlled infrastructure-failure and recovery evidence.
-- A technical report (maximum four pages) and an AI usage note (maximum one page).
+- **Authorization:** test cross-organization access denial and participant attempts to invoke organizer-only operations.
+- **Data protection:** verify that source code, submission details, judge diagnostics and hidden test data are disclosed only to authorized callers and are not leaked through logs or participant responses.
+- **Concurrent workload:** exercise overlapping submission requests and leaderboard reads with at least two independent application/worker processes.
+- **Performance measurements:** record dataset size, concurrency, machine resources and execution mode; measure API p50, p95 and p99 latency, throughput, errors, queue delay and execution time separately.
+- **Database analysis:** capture an EXPLAIN plan for a measured bottleneck, apply one justified optimization and compare before/after results under the same workload, followed by correctness checks.
+- **Diagnostics and recovery:** use structured logs with request, submission and attempt identifiers, then demonstrate a controlled infrastructure failure and successful recovery.
+- **Submission documentation:** prepare a technical report of no more than four pages and an AI usage note of no more than one page.
 
----
+**Completion evidence to produce:** authorization/security tests, saved workload results tied to a commit and configuration, query-plan evidence, before/after measurements, structured-log examples, a failure/recovery test and the two assessment documents.
 
-This README describes the implemented scope and known verification gaps so that the repository's documentation remains aligned with the actual code and test evidence.
+### Delivery status
+
+Stage 3 and Stage 4 are the remaining assessment scope. Their requirements and expected evidence are specified here to make the intended completion criteria clear; they should only be marked complete after the corresponding implementation, tests and measurements have been added to the repository.
