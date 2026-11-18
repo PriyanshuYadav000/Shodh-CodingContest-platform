@@ -31,6 +31,7 @@ class ContestStatus(str, enum.Enum):
 
 class Contest(Base):
 
+    
     __tablename__ = "contests"
 
     __table_args__ = (
