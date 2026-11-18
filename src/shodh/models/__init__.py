@@ -2,6 +2,7 @@ from shodh.models.contest import Contest, ContestStatus
 from shodh.models.membership import Membership, MembershipRole
 from shodh.models.organization import Organization
 from shodh.models.participation import Participation
+from shodh.models.problem import Problem, ProblemVersion, TestCase, TestSuiteVersion
 from shodh.models.user import User
 
 __all__ = [
@@ -11,5 +12,9 @@ __all__ = [
     "MembershipRole",
     "Organization",
     "Participation",
+    "Problem",
+    "ProblemVersion",
+    "TestCase",
+    "TestSuiteVersion",
     "User",
 ]
