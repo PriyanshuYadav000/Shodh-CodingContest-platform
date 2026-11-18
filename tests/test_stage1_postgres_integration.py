@@ -20,7 +20,7 @@ from shodh.models.problem import (
 from shodh.models.problem import (
     TestSuiteVersion as ProblemTestSuiteVersion,
 )
-from shodh.models.submission import VerdictType
+from shodh.models.submission import SubmissionStatus, VerdictType\nfrom shodh.repositories.submission_repository import claim_next_submission
 from shodh.models.user import User
 from shodh.schemas.submission import SubmissionCreateRequest, VerdictCreateRequest
 from shodh.services.submission_service import (
@@ -82,3 +82,35 @@ def test_submission_pinning_access_verdicts_and_leaderboard(db: Session) -> None
     assert winner["score"] == 100 and winner["penalty_minutes"] >= 20
     assert zero["score"] == zero["solved"] == zero["penalty_minutes"] == 0
     assert first.id != second.id
+
+
+
+def test_claim_next_submission_changes_queued_to_running(db: Session) -> None:
+    org, contest, participant, _, _, problem, _, _ = setup_contest(db)
+    submission = create_new_submission(
+        db,
+        org.id,
+        contest.id,
+        participant.id,
+        SubmissionCreateRequest(
+            problem_id=problem.id,
+            source_code="print(1)",
+            language="python",
+        ),
+    )
+
+    assert submission.status == SubmissionStatus.QUEUED
+    assert submission.started_at is None
+
+    claimed = claim_next_submission(db)
+
+    assert claimed is not None
+    assert claimed.id == submission.id
+    assert claimed.status == SubmissionStatus.RUNNING
+    assert claimed.started_at is not None
+    assert claimed.completed_at is None
+    assert claim_next_submission(db) is None
+
+
+def test_claim_next_submission_returns_none_for_empty_queue(db: Session) -> None:
+    assert claim_next_submission(db) is None
