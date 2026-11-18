@@ -17,6 +17,7 @@ from shodh.database.base import Base
 
 if TYPE_CHECKING:
     from shodh.models.membership import Membership
+    from shodh.models.participation import Participation
 
 
 class User(Base):
@@ -53,6 +54,10 @@ class User(Base):
     )
 
     memberships: Mapped[list["Membership"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    participations: Mapped[list["Participation"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )
