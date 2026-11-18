@@ -30,6 +30,9 @@ def _normalize_slug(value: str | None) -> str | None:
         return None
 
     value = value.strip().lower()
+    if not 3 <= len(value) <= 120:
+        raise ValueError("Contest slug must contain between 3 and 120 characters")
+
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", value):
         raise ValueError(
             "Slug must contain lowercase letters and numbers separated "
