@@ -2,18 +2,12 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from shodh.models.user import User
-from shodh.repositories.user_repository import (
-    create_user,
-    get_user_by_email
-)
-from shodh.schemas.auth import RegisterRequest
-from shodh.security.password import (
-    hash_password,
-    verify_password
-)
-from shodh.security.tokens import create_access_token
 from shodh.config.settings import settings
+from shodh.models.user import User
+from shodh.repositories.user_repository import create_user, get_user_by_email
+from shodh.schemas.auth import RegisterRequest
+from shodh.security.password import hash_password, verify_password
+from shodh.security.tokens import create_access_token
 
 
 def register_user(

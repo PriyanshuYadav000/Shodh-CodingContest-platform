@@ -2,13 +2,7 @@ import re
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    EmailStr,
-    Field,
-    field_validator
-)
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from shodh.models.membership import MembershipRole
 

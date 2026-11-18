@@ -3,34 +3,30 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from shodh.controllers.organization_controller import (
+    add_member_controller,
+    create_organization_controller,
+    get_organization_controller,
+    list_members_controller,
+    list_organizations_controller,
+    update_member_role_controller,
+)
 from shodh.database.session import get_db
 from shodh.dependencies.auth import get_current_user
 from shodh.dependencies.organization import (
     get_current_organization_membership,
-    require_organization_role
+    require_organization_role,
 )
-
-from shodh.models.user import User
 from shodh.models.membership import Membership, MembershipRole
-
+from shodh.models.user import User
 from shodh.schemas.organization import (
-    OrganizationCreateRequest,
-    OrganizationResponse,
-    OrganizationListItem,
     AddOrganizationMemberRequest,
+    OrganizationCreateRequest,
+    OrganizationListItem,
     OrganizationMemberResponse,
-    UpdateMemberRoleRequest
+    OrganizationResponse,
+    UpdateMemberRoleRequest,
 )
-
-from shodh.controllers.organization_controller import (
-    create_organization_controller,
-    list_organizations_controller,
-    get_organization_controller,
-    add_member_controller,
-    list_members_controller,
-    update_member_role_controller
-)
-
 
 router = APIRouter(
     prefix="/organizations",

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
@@ -7,7 +7,7 @@ from shodh.schemas.contest import ContestCreateRequest, ContestUpdateRequest
 
 
 def valid_contest_payload() -> dict:
-    registration_opens_at = datetime.now(timezone.utc) + timedelta(days=1)
+    registration_opens_at = datetime.now(UTC) + timedelta(days=1)
     starts_at = registration_opens_at + timedelta(days=1)
     ends_at = starts_at + timedelta(hours=2)
 

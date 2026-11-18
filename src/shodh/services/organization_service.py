@@ -4,23 +4,20 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from shodh.models.organization import Organization
 from shodh.models.membership import Membership, MembershipRole
-
+from shodh.models.organization import Organization
 from shodh.repositories.organization_repository import (
-    get_organization_by_id,
+    count_organizers,
     get_membership,
-    list_user_organizations,
+    get_organization_by_id,
     list_organization_members,
-    count_organizers
+    list_user_organizations,
 )
-
 from shodh.repositories.user_repository import get_user_by_email
-
 from shodh.schemas.organization import (
-    OrganizationCreateRequest,
     AddOrganizationMemberRequest,
-    UpdateMemberRoleRequest
+    OrganizationCreateRequest,
+    UpdateMemberRoleRequest,
 )
 
 

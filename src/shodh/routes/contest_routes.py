@@ -26,7 +26,6 @@ from shodh.schemas.contest import (
     ContestUpdateRequest,
 )
 
-
 router = APIRouter(tags=["Contests"])
 
 

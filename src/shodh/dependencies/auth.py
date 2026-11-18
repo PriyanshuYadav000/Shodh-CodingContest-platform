@@ -1,7 +1,6 @@
 from uuid import UUID
 
 import jwt
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -10,7 +9,6 @@ from shodh.config.settings import settings
 from shodh.database.session import get_db
 from shodh.models.user import User
 from shodh.security.tokens import decode_access_token
-
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.api_v1_prefix}/auth/token"

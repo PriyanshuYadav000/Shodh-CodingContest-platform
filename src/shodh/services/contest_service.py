@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -181,7 +181,7 @@ def publish_contest(
             detail="Only draft contests can be published",
         )
 
-    if datetime.now(timezone.utc) >= contest.starts_at:
+    if datetime.now(UTC) >= contest.starts_at:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot publish a contest after it has started",

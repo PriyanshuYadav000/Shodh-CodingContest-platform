@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 
 from shodh.database.session import get_db
 from shodh.dependencies.auth import get_current_user
-from shodh.models.user import User
 from shodh.models.membership import Membership, MembershipRole
+from shodh.models.user import User
 from shodh.repositories.organization_repository import get_membership
 
 

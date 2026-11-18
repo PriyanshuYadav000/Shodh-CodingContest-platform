@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from shodh.models.user import User
 from shodh.schemas.auth import RegisterRequest
-from shodh.services.auth_service import (register_user,login_user)
+from shodh.services.auth_service import login_user, register_user
 
 
 def register_controller(

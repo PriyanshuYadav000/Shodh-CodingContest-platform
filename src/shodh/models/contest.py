@@ -1,22 +1,20 @@
-import uuid
 import enum
-
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
     String,
     Text,
-    Integer,
-    DateTime,
-    ForeignKey,
-    Enum,
-    CheckConstraint,
     UniqueConstraint,
-    Index,
     Uuid,
-    func
+    func,
 )
-
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shodh.database.base import Base

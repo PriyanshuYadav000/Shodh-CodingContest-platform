@@ -3,20 +3,18 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from shodh.models.user import User
-
 from shodh.schemas.organization import (
-    OrganizationCreateRequest,
     AddOrganizationMemberRequest,
-    UpdateMemberRoleRequest
+    OrganizationCreateRequest,
+    UpdateMemberRoleRequest,
 )
-
 from shodh.services.organization_service import (
-    create_organization,
-    get_user_organizations,
-    get_organization,
     add_organization_member,
+    create_organization,
+    get_organization,
     get_organization_members,
-    update_member_role
+    get_user_organizations,
+    update_member_role,
 )
 
 

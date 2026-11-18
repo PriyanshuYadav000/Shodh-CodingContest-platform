@@ -6,7 +6,6 @@ from shodh.routes.contest_routes import router as contest_router
 from shodh.routes.health_routes import router as health_router
 from shodh.routes.organization_routes import router as organization_router
 
-
 app = FastAPI(
     title=settings.app_name,
     description="Backend API for Shodh Coding Contest Platform",
