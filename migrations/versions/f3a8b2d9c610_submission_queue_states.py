@@ -31,7 +31,23 @@ def upgrade() -> None:
     for check in checks:
         sqltext = (check.get("sqltext") or "").lower()
         if "status" in sqltext and check.get("name"):
-            op.drop_constraint(check["name"], "submissions", type_="check")
+            # Reflected names already include the metadata convention prefix;
+            # using op.drop_constraint would apply it a second time.
+            op.execute(
+                sa.text(
+                    f'ALTER TABLE submissions DROP CONSTRAINT "{check["name"]}"'
+                )
+            )
+
+    # The original non-native enum inferred VARCHAR(6) from ``queued`` and
+    # ``judged``. Widen it before converting judged rows to ``completed``.
+    op.alter_column(
+        "submissions",
+        "status",
+        existing_type=sa.String(length=6),
+        type_=sa.String(length=16),
+        existing_nullable=False,
+    )
 
     # Preserve existing judged rows as completed rows.
     op.execute(

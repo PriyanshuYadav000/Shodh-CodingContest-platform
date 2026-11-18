@@ -20,8 +20,9 @@ from shodh.models.problem import (
 from shodh.models.problem import (
     TestSuiteVersion as ProblemTestSuiteVersion,
 )
-from shodh.models.submission import SubmissionStatus, VerdictType\nfrom shodh.repositories.submission_repository import claim_next_submission
+from shodh.models.submission import SubmissionStatus, VerdictType
 from shodh.models.user import User
+from shodh.repositories.submission_repository import claim_next_submission
 from shodh.schemas.submission import SubmissionCreateRequest, VerdictCreateRequest
 from shodh.services.submission_service import (
     create_new_submission,
@@ -114,3 +115,38 @@ def test_claim_next_submission_changes_queued_to_running(db: Session) -> None:
 
 def test_claim_next_submission_returns_none_for_empty_queue(db: Session) -> None:
     assert claim_next_submission(db) is None
+
+
+def test_real_docker_judge_accepts_submission(db: Session) -> None:
+    import os
+
+    if os.environ.get("RUN_DOCKER_TESTS") != "1":
+        pytest.skip("Set RUN_DOCKER_TESTS=1 to run Docker tests")
+
+    from shodh.services.judge_service import judge_submission
+
+    org, contest, participant, _, _, problem, _, _ = setup_contest(db)
+
+    submission = create_new_submission(
+        db,
+        org.id,
+        contest.id,
+        participant.id,
+        SubmissionCreateRequest(
+            problem_id=problem.id,
+            source_code="print(input())",
+            language="python",
+        ),
+    )
+
+    claimed = claim_next_submission(db)
+    assert claimed is not None
+
+    attempt = judge_submission(db, claimed.id)
+
+    assert attempt.verdict == VerdictType.ACCEPTED
+    assert attempt.passed_tests == 2
+    assert attempt.total_tests == 2
+
+    db.refresh(submission)
+    assert submission.status == SubmissionStatus.COMPLETED

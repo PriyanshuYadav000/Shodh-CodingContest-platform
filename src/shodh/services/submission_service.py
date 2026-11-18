@@ -55,14 +55,50 @@ def get_visible_submission(db,org,contest,submission_id,user_id,role):
  return s
 def get_submissions(db,org,contest,user_id,role,limit,offset):
  _contest(db,org,contest);items,total=list_submissions(db,contest,user_id if role==MembershipRole.PARTICIPANT else None,limit,offset);return {"items":items,"total":total,"limit":limit,"offset":offset}
-def record_verdict(db:Session,submission_id:UUID,payload:VerdictCreateRequest):
- s=get_submission(db,submission_id)
- if not s: raise HTTPException(404,"Submission not found")
- if payload.passed_tests>payload.total_tests: raise HTTPException(422,"Passed tests cannot exceed total tests")
- a=VerdictAttempt(submission_id=s.id,attempt_number=next_attempt_number(db,s.id),**payload.model_dump())
- try:
-  create_attempt(db,a);s.status = (\n   SubmissionStatus.FAILED\n   if payload.verdict == VerdictType.INFRASTRUCTURE_ERROR\n   else SubmissionStatus.COMPLETED\n  )\n  s.completed_at = datetime.now(UTC)\n  db.commit();db.refresh(a);return a
- except IntegrityError as exc: db.rollback();raise HTTPException(409,"Verdict could not be recorded") from exc
+def record_verdict(
+    db: Session,
+    submission_id: UUID,
+    payload: VerdictCreateRequest,
+):
+    submission = get_submission(db, submission_id)
+
+    if not submission:
+        raise HTTPException(404, "Submission not found")
+
+    if payload.passed_tests > payload.total_tests:
+        raise HTTPException(
+            422,
+            "Passed tests cannot exceed total tests",
+        )
+
+    attempt = VerdictAttempt(
+        submission_id=submission.id,
+        attempt_number=next_attempt_number(db, submission.id),
+        **payload.model_dump(),
+    )
+
+    try:
+        create_attempt(db, attempt)
+
+        submission.status = (
+            SubmissionStatus.FAILED
+            if payload.verdict == VerdictType.INFRASTRUCTURE_ERROR
+            else SubmissionStatus.COMPLETED
+        )
+        submission.completed_at = datetime.now(UTC)
+
+        db.commit()
+        db.refresh(attempt)
+        return attempt
+
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            409,
+            "Verdict could not be recorded",
+        ) from exc
+
+
 def get_verdict_history(db,org,contest,submission_id,user_id,role):
  get_visible_submission(db,org,contest,submission_id,user_id,role);return list_attempts(db,submission_id)
 
