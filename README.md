@@ -42,3 +42,11 @@ update that also creates a new content version.
 Participants can view only active problems in published contests. Their
 responses contain public sample cases only; hidden test input and expected
 output are never serialized in participant responses.
+
+## Submissions and leaderboard
+
+Participants submit with `POST /api/v1/organizations/{organization_id}/contests/{contest_id}/submissions`; they may list and read only their own submissions. Organizers may inspect every submission in their organization contest. Verdict history is read from `/submissions/{submission_id}/verdicts` and never includes test inputs or outputs. The leaderboard is at `/leaderboard`.
+
+Scores award 100 points for each first accepted problem. Every non-infrastructure verdict before acceptance adds the contest wrong-attempt penalty; accepted elapsed minutes are added as well. Rankings are score descending, solved descending, penalty ascending, last accepted time ascending, then user ID ascending. Registered participants with no submissions appear with zero score.
+
+Run migrations with `alembic upgrade head`. Seed deterministic local examples with `python -m shodh.seed`: `organizer@example.test` / `OrganizerPass123!` and `participant@example.test` / `ParticipantPass123!`.
