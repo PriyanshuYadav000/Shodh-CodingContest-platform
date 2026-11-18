@@ -2,21 +2,16 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from shodh.models.user import User
 from shodh.models.membership import MembershipRole
-
-from shodh.schemas.contest import (
-    ContestCreateRequest,
-    ContestUpdateRequest
-)
-
+from shodh.models.user import User
+from shodh.schemas.contest import ContestCreateRequest, ContestUpdateRequest
 from shodh.services.contest_service import (
+    cancel_contest,
     create_new_contest,
-    get_organization_contests,
     get_contest_details,
-    update_contest,
+    get_organization_contests,
     publish_contest,
-    cancel_contest
+    update_contest,
 )
 
 
@@ -24,15 +19,9 @@ def create_contest_controller(
     db: Session,
     organization_id: UUID,
     payload: ContestCreateRequest,
-    current_user: User
+    current_user: User,
 ):
-
-    return create_new_contest(
-        db,
-        organization_id,
-        current_user.id,
-        payload
-    )
+    return create_new_contest(db, organization_id, current_user.id, payload)
 
 
 def list_contests_controller(
@@ -40,67 +29,46 @@ def list_contests_controller(
     organization_id: UUID,
     role: MembershipRole,
     limit: int,
-    offset: int
+    offset: int,
 ):
-
     return get_organization_contests(
         db,
         organization_id,
         role,
         limit,
-        offset
+        offset,
     )
 
 
 def get_contest_controller(
     db: Session,
     organization_id: UUID,
-    contest_id: UUID
+    contest_id: UUID,
+    role: MembershipRole,
 ):
-
-    return get_contest_details(
-        db,
-        organization_id,
-        contest_id
-    )
+    return get_contest_details(db, organization_id, contest_id, role)
 
 
 def update_contest_controller(
     db: Session,
     organization_id: UUID,
     contest_id: UUID,
-    payload: ContestUpdateRequest
+    payload: ContestUpdateRequest,
 ):
-
-    return update_contest(
-        db,
-        organization_id,
-        contest_id,
-        payload
-    )
+    return update_contest(db, organization_id, contest_id, payload)
 
 
 def publish_contest_controller(
     db: Session,
     organization_id: UUID,
-    contest_id: UUID
+    contest_id: UUID,
 ):
-
-    return publish_contest(
-        db,
-        organization_id,
-        contest_id
-    )
+    return publish_contest(db, organization_id, contest_id)
 
 
 def cancel_contest_controller(
     db: Session,
     organization_id: UUID,
-    contest_id: UUID
+    contest_id: UUID,
 ):
-
-    return cancel_contest(
-        db,
-        organization_id,
-        contest_id
-    )
+    return cancel_contest(db, organization_id, contest_id)
