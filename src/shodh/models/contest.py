@@ -22,6 +22,7 @@ from shodh.database.base import Base
 
 if TYPE_CHECKING:
     from shodh.models.participation import Participation\n    from shodh.models.problem import Problem
+    from shodh.models.problem import Problem
 
 
 class ContestStatus(str, enum.Enum):
@@ -121,7 +122,9 @@ class Contest(Base):
         nullable=False,
     )
 
-    problems: Mapped[list["Problem"]] = relationship(back_populates="contest", cascade="all, delete-orphan")\n\n    participations: Mapped[list["Participation"]] = relationship(
+    problems: Mapped[list["Problem"]] = relationship(back_populates="contest", cascade="all, delete-orphan")
+
+    participations: Mapped[list["Participation"]] = relationship(
         back_populates="contest",
         cascade="all, delete-orphan",
     )
