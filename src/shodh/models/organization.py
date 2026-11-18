@@ -59,3 +59,5 @@ class Organization(Base):
         back_populates="organization",
         cascade="all, delete-orphan"
     )
+
+    

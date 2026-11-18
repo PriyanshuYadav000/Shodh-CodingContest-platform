@@ -5,6 +5,7 @@ from shodh.routes.health_routes import router as health_router
 from shodh.routes.auth_routes import router as auth_router
 
 
+
 app = FastAPI(
     title=settings.app_name,
     description="Backend API for Shodh Coding Contest Platform",
@@ -31,3 +32,12 @@ def root():
         "message": "Shodh Coding Contest Platform API",
         "status": "running"
     }
+
+from shodh.routes.organization_routes import (
+    router as organization_router
+)
+
+app.include_router(
+    organization_router,
+    prefix=settings.api_v1_prefix
+)
