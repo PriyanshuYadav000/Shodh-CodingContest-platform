@@ -21,7 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from shodh.database.base import Base
 
 if TYPE_CHECKING:
-    from shodh.models.participation import Participation
+    from shodh.models.participation import Participation\n    from shodh.models.problem import Problem
 
 
 class ContestStatus(str, enum.Enum):
