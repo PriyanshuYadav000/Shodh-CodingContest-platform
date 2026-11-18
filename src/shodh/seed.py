@@ -22,7 +22,8 @@ def main() -> None:
         organizer=User(id=ORGANIZER,full_name="Demo Organizer",email="organizer@example.test",password_hash=hash_password("OrganizerPass123!"))
         participant=User(id=PARTICIPANT,full_name="Demo Participant",email="participant@example.test",password_hash=hash_password("ParticipantPass123!"))
         first=Organization(id=ORGA,name="Shodh Academy",slug="shodh-academy"); second=Organization(id=ORGB,name="Example Institute",slug="example-institute")
-        db.add_all([organizer,participant,first,second,Membership(organization_id=ORGA,user_id=ORGANIZER,role=MembershipRole.ORGANIZER),Membership(organization_id=ORGA,user_id=PARTICIPANT,role=MembershipRole.PARTICIPANT),Membership(organization_id=ORGB,user_id=ORGANIZER,role=MembershipRole.ORGANIZER)])
+        db.add_all([organizer, participant, first, second]); db.flush()
+        db.add_all([Membership(organization_id=ORGA,user_id=ORGANIZER,role=MembershipRole.ORGANIZER),Membership(organization_id=ORGA,user_id=PARTICIPANT,role=MembershipRole.PARTICIPANT),Membership(organization_id=ORGB,user_id=ORGANIZER,role=MembershipRole.ORGANIZER)])
         now=datetime.now(UTC); contests=[Contest(organization_id=ORGA,created_by=ORGANIZER,title="Seed Open Contest",slug="seed-open",status=ContestStatus.PUBLISHED,registration_opens_at=now-timedelta(days=2),starts_at=now-timedelta(hours=1),ends_at=now+timedelta(days=1)),Contest(organization_id=ORGB,created_by=ORGANIZER,title="Seed Draft Contest",slug="seed-draft",status=ContestStatus.DRAFT,registration_opens_at=now+timedelta(days=1),starts_at=now+timedelta(days=2),ends_at=now+timedelta(days=3))]
         db.add_all(contests); db.flush()
         for number,title in enumerate(("Sum", "Maximum", "Palindrome"),1):
