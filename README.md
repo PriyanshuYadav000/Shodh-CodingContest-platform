@@ -17,7 +17,7 @@ Backend implementation for the Shodh a Code Backend Engineer Intern take-home as
 3. Idempotency, concurrency, recovery, and rejudging
 4. Security, performance, and diagnostic evidence
 
-This repository currently contains the initial project scaffold. Application logic and environment setup will be added and verified incrementally.
+The API, contest, problem versioning, submissions, verdict history, and leaderboard are implemented. Stage 2 adds the asynchronous judge worker and isolated Docker execution.
 
 ## Stage 1 problem management
 
@@ -50,3 +50,15 @@ Participants submit with `POST /api/v1/organizations/{organization_id}/contests/
 Scores award 100 points for each first accepted problem. Every non-infrastructure verdict before acceptance adds the contest wrong-attempt penalty; accepted elapsed minutes are added as well. Rankings are score descending, solved descending, penalty ascending, last accepted time ascending, then user ID ascending. Registered participants with no submissions appear with zero score.
 
 Run migrations with `alembic upgrade head`. Seed deterministic local examples with `python -m shodh.seed`: `organizer@example.test` / `OrganizerPass123!` and `participant@example.test` / `ParticipantPass123!`.
+
+
+## Stage 2.1 — Submission queue
+
+Submissions use PostgreSQL as a simple durable queue. New submissions are
+saved with status `queued`. Run `python -m shodh.worker` to claim one queued
+submission. The worker uses PostgreSQL `FOR UPDATE SKIP LOCKED`, changes the
+row to `running`, records `started_at`, and prints the submission ID.
+Execution and verdict generation are added in the next Stage 2 checkpoint.
+
+Submission statuses are `queued`, `running`, `completed`, and `failed`.
+Existing `judged` rows are migrated to `completed`.

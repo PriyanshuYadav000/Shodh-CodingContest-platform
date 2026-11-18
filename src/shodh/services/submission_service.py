@@ -61,7 +61,7 @@ def record_verdict(db:Session,submission_id:UUID,payload:VerdictCreateRequest):
  if payload.passed_tests>payload.total_tests: raise HTTPException(422,"Passed tests cannot exceed total tests")
  a=VerdictAttempt(submission_id=s.id,attempt_number=next_attempt_number(db,s.id),**payload.model_dump())
  try:
-  create_attempt(db,a);s.status=SubmissionStatus.JUDGED;db.commit();db.refresh(a);return a
+  create_attempt(db,a);s.status = (\n   SubmissionStatus.FAILED\n   if payload.verdict == VerdictType.INFRASTRUCTURE_ERROR\n   else SubmissionStatus.COMPLETED\n  )\n  s.completed_at = datetime.now(UTC)\n  db.commit();db.refresh(a);return a
  except IntegrityError as exc: db.rollback();raise HTTPException(409,"Verdict could not be recorded") from exc
 def get_verdict_history(db,org,contest,submission_id,user_id,role):
  get_visible_submission(db,org,contest,submission_id,user_id,role);return list_attempts(db,submission_id)
